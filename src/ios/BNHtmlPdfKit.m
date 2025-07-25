@@ -59,29 +59,29 @@
 @implementation BNHtmlPdfKit
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:[BNHtmlPdfKit defaultPageSize] isLandscape:NO success:completion failure:failure];
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     return [BNHtmlPdfKit saveUrlAsPdf:url pageSize:pageSize isLandscape:NO success:completion failure:failure];
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
     pdfKit.dataCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:nil];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape topAndBottomMarginSize:(CGFloat)topAndBottom leftAndRightMarginSize:(CGFloat)leftAndRight success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
     pdfKit.topAndBottomMarginSize = topAndBottom;
     pdfKit.leftAndRightMarginSize = leftAndRight;
@@ -89,45 +89,45 @@
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:nil];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     return [BNHtmlPdfKit saveUrlAsPdf:url toFile:filename pageSize:[BNHtmlPdfKit defaultPageSize] isLandscape:NO success:completion failure:failure];
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename pageSize:(BNPageSize)pageSize success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     return [BNHtmlPdfKit saveUrlAsPdf:url toFile:filename pageSize:pageSize isLandscape:NO success:completion failure:failure];
-    
+
 }
 
 +(BNHtmlPdfKit *)saveHTMLAsPdf:(NSString *)html pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape baseUrl:(NSURL *)baseUrl success:(void (^)(NSData *))completion failure:(void (^)(NSError *))failure{
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
     pdfKit.dataCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     pdfKit.baseUrl = baseUrl;
-    
+
     [pdfKit saveHtmlAsPdf:html];
     return pdfKit;
 }
 
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
     pdfKit.fileCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:filename];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename pageSize:(BNPageSize)pageSize isLandscape:(BOOL)landscape topAndBottomMarginSize:(CGFloat)topAndBottom leftAndRightMarginSize:(CGFloat)leftAndRight success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithPageSize:pageSize isLandscape:landscape];
     pdfKit.topAndBottomMarginSize = topAndBottom;
     pdfKit.leftAndRightMarginSize = leftAndRight;
@@ -135,21 +135,21 @@
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:filename];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url customPageSize:(CGSize)pageSize success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithCustomPageSize:pageSize];
     pdfKit.dataCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:nil];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url customPageSize:(CGSize)pageSize topAndBottomMarginSize:(CGFloat)topAndBottom leftAndRightMarginSize:(CGFloat)leftAndRight success:(void (^)(NSData *pdfData))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithCustomPageSize:pageSize];
     pdfKit.topAndBottomMarginSize = topAndBottom;
     pdfKit.leftAndRightMarginSize = leftAndRight;
@@ -157,21 +157,21 @@
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:nil];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename customPageSize:(CGSize)pageSize success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithCustomPageSize:pageSize];
     pdfKit.fileCompletionBlock = completion;
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:filename];
     return pdfKit;
-    
+
 }
 
 + (BNHtmlPdfKit *)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)filename customPageSize:(CGSize)pageSize topAndBottomMarginSize:(CGFloat)topAndBottom leftAndRightMarginSize:(CGFloat)leftAndRight success:(void (^)(NSString *filename))completion failure:(void (^)(NSError *error))failure {
-    
+
     BNHtmlPdfKit *pdfKit = [[BNHtmlPdfKit alloc] initWithCustomPageSize:pageSize];
     pdfKit.topAndBottomMarginSize = topAndBottom;
     pdfKit.leftAndRightMarginSize = leftAndRight;
@@ -179,7 +179,7 @@
     pdfKit.failureBlock = failure;
     [pdfKit saveUrlAsPdf:url toFile:filename];
     return pdfKit;
-    
+
 }
 
 #pragma mark - Initializers
@@ -188,7 +188,7 @@
     if (self = [super init]) {
         self.pageSize = [BNHtmlPdfKit defaultPageSize];
         self.landscape = NO;
-        
+
         // Default 1/4" margins
         self.topAndBottomMarginSize = 0.25f * 72.0f;
         self.leftAndRightMarginSize = 0.25f * 72.0f;
@@ -200,7 +200,7 @@
     if (self = [super init]) {
         self.pageSize = pageSize;
         self.landscape = NO;
-        
+
         // Default 1/4" margins
         self.topAndBottomMarginSize = 0.25f * 72.0f;
         self.leftAndRightMarginSize = 0.25f * 72.0f;
@@ -212,7 +212,7 @@
     if (self = [super init]) {
         self.pageSize = pageSize;
         self.landscape = landscape;
-        
+
         // Default 1/4" margins
         self.topAndBottomMarginSize = 0.25f * 72.0f;
         self.leftAndRightMarginSize = 0.25f * 72.0f;
@@ -225,7 +225,7 @@
         self.pageSize = BNPageSizeCustom;
         self.customPageSize = pageSize;
         self.landscape = NO;
-        
+
         // Default 1/4" margins
         self.topAndBottomMarginSize = 0.25f * 72.0f;
         self.leftAndRightMarginSize = 0.25f * 72.0f;
@@ -235,7 +235,7 @@
 
 - (void)dealloc {
     [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(_timeout) object:nil];
-    
+
     [self.webView setNavigationDelegate:nil];
     [self.webView stopLoading];
 }
@@ -370,10 +370,10 @@
 
 - (void)saveHtmlAsPdf:(NSString *)html toFile:(NSString *)file {
     self.outputFile = file;
-    
+
     self.webView = [[WKWebView alloc] init];
     self.webView.navigationDelegate = self;
-    
+
     if (!self.baseUrl) {
         [self.webView loadHTMLString:html baseURL:[NSURL URLWithString:@"http://localhost"]];
     } else {
@@ -387,12 +387,12 @@
 
 - (void)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)file {
     self.outputFile = file;
-    
+
     self.webView = [[WKWebView alloc] init];
     self.webView.navigationDelegate = self;
-    
+
     self.webView.configuration.suppressesIncrementalRendering = YES;
-    
+
     [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
@@ -402,11 +402,11 @@
 
 - (void)saveWebViewAsPdf:(WKWebView *)webView toFile:(NSString *)file {
     [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(_timeout) object:nil];
-    
+
     self.outputFile = file;
-    
+
     webView.navigationDelegate = self;
-    
+
     self.webView = webView;
 }
 
@@ -419,15 +419,15 @@
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     [webView evaluateJavaScript:@"document.readyState" completionHandler:^(id _Nullable readyState, NSError * _Nullable error) {
         BOOL complete = [readyState isEqualToString:@"complete"];
-        
+
         [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(_timeout) object:nil];
-        
+
         if (complete) {
             [self _savePdf];
         } else {
             [self performSelector:@selector(_timeout) withObject:nil afterDelay:1.0f];
         }
-        
+
     }];
 }
 
@@ -438,64 +438,68 @@
 }
 
 - (void)_savePdf {
-    if (!self.webView) {
-        return;
-    }
-    
-    UIPrintFormatter *formatter = self.webView.viewPrintFormatter;
-    
-    BNHtmlPdfKitPageRenderer *renderer = [[BNHtmlPdfKitPageRenderer alloc] init];
-    renderer.topAndBottomMarginSize = self.topAndBottomMarginSize;
-    renderer.leftAndRightMarginSize = self.leftAndRightMarginSize;
-    
-    [renderer addPrintFormatter:formatter startingAtPageAtIndex:0];
-    
-    NSMutableData *currentReportData = [NSMutableData data];
-    
-    CGSize pageSize = [self actualPageSize];
-    CGRect pageRect = CGRectMake(0, 0, pageSize.width, pageSize.height);
-    
-    UIGraphicsBeginPDFContextToData(currentReportData, pageRect, nil);
-    
-    [renderer prepareForDrawingPages:NSMakeRange(0, 1)];
-    
-    NSInteger pages = [renderer numberOfPages];
-    
-    for (NSInteger i = 0; i < pages; i++) {
+    if (!self.webView) return;
+
+    CGFloat pageHeight = self.webView.bounds.size.height;
+    CGSize scrollSize = self.webView.scrollView.contentSize;
+
+    // Add extra height (1 more screenful)
+    CGSize paddedSize = CGSizeMake(scrollSize.width, scrollSize.height + pageHeight);
+    CGRect pageRect = CGRectMake(0, 0, paddedSize.width, paddedSize.height);
+
+    self.webView.bounds = pageRect;
+    self.webView.opaque = NO;
+    self.webView.backgroundColor = [UIColor clearColor];
+    self.webView.scrollView.backgroundColor = [UIColor clearColor];
+
+    WKSnapshotConfiguration *config = [[WKSnapshotConfiguration alloc] init];
+    config.rect = pageRect;
+    config.afterScreenUpdates = YES;
+
+    [self.webView takeSnapshotWithConfiguration:config completionHandler:^(UIImage *snapshotImage, NSError *error) {
+        if (error || !snapshotImage) {
+            NSLog(@"Snapshot failed: %@", error);
+            if (self.failureBlock) {
+                self.failureBlock(error ?: [NSError errorWithDomain:@"BNHtmlPdfKit" code:500 userInfo:@{NSLocalizedDescriptionKey: @"Snapshot failed"}]);
+            }
+            return;
+        }
+
+        NSMutableData *pdfData = [NSMutableData data];
+        UIGraphicsBeginPDFContextToData(pdfData, pageRect, nil);
         UIGraphicsBeginPDFPage();
-        [renderer drawPageAtIndex:i inRect:renderer.paperRect];
-    }
-    
-    UIGraphicsEndPDFContext();
-    
-    if (self.dataCompletionBlock) {
-        self.dataCompletionBlock(currentReportData);
-    }
-    
-    if (self.fileCompletionBlock) {
-        self.fileCompletionBlock(self.outputFile);
-    }
-    
-    if ([self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfData:)]) {
-        [self.delegate htmlPdfKit:self didSavePdfData:currentReportData];
-    }
-    
-    if (self.outputFile) {
-        [currentReportData writeToFile:self.outputFile atomically:YES];
-        
-        if ([self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfFile:)]) {
+
+        [snapshotImage drawInRect:pageRect];
+
+        UIGraphicsEndPDFContext();
+
+        if (self.dataCompletionBlock) {
+            self.dataCompletionBlock(pdfData);
+        }
+
+        if (self.fileCompletionBlock && self.outputFile) {
+            [pdfData writeToFile:self.outputFile atomically:YES];
+            self.fileCompletionBlock(self.outputFile);
+        }
+
+        if ([self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfData:)]) {
+            [self.delegate htmlPdfKit:self didSavePdfData:pdfData];
+        }
+
+        if (self.outputFile &&
+            [self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfFile:)]) {
             [self.delegate htmlPdfKit:self didSavePdfFile:self.outputFile];
         }
-    }
-    
-    self.webView = nil;
+
+        self.webView = nil;
+    }];
 }
 
 - (CGSize)_sizeFromPageSize:(BNPageSize)pageSize {
     if (pageSize == BNPageSizeCustom) {
         return self.customPageSize;
     }
-    
+
     return [BNHtmlPdfKit sizeForPageSize:pageSize];
 }
 
@@ -503,7 +507,7 @@
     NSLocale *locale = [NSLocale currentLocale];
     BOOL useMetric = [[locale objectForKey:NSLocaleUsesMetricSystem] boolValue];
     BNPageSize pageSize = (useMetric ? BNPageSizeA4 : BNPageSizeLetter);
-    
+
     return pageSize;
 }
 
