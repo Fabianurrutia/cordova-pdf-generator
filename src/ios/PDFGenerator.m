@@ -92,33 +92,31 @@
 - (void)htmlToPDF:(CDVInvokedUrlCommand*)command
 {
     self.hasPendingOperation = YES;
-    
 
-    
-    NSString* url  = [command argumentAtIndex:0 withDefault:NULL];
-    NSString* data = [command argumentAtIndex:1 withDefault:NULL];
-    NSString* type =  [command argumentAtIndex:2 withDefault:@"A4"];
-    NSString* _landscape =  [command argumentAtIndex:3 withDefault:@"portrait"];
+    NSString* url        = [command argumentAtIndex:0 withDefault:NULL];
+    NSString* data       = [command argumentAtIndex:1 withDefault:NULL];
+    NSString* type       = [command argumentAtIndex:2 withDefault:@"A4"];
+    NSString* _landscape = [command argumentAtIndex:3 withDefault:@"portrait"];
     NSString* option     = [command argumentAtIndex:4 withDefault:@"base64"];
-    NSString* bUrl = [command argumentAtIndex:6 withDefault:NULL];
+    NSString* bUrl       = [command argumentAtIndex:6 withDefault:NULL];
 
-    
     BNPageSize pageSize;
     BOOL landscape = NO;
     NSURL *baseUrl = nil;
-    
+
+    // Determine page size
     if ([type isEqualToString:@"A3"]) {
         pageSize = BNPageSizeA3;
-    }else{
+    } else {
         pageSize = BNPageSizeA4;
     }
-    
-    if ([_landscape isEqualToString:@"portrait"]) {
-        landscape = NO;
-    }else if([_landscape isEqualToString:@"landscape"]){
+
+    // Orientation
+    if ([_landscape isEqualToString:@"landscape"]) {
         landscape = YES;
     }
-    
+
+    // Determine base URL
     if (bUrl != NULL) {
         if ([bUrl isEqualToString:@"BUNDLE"]) {
             baseUrl = [[NSBundle mainBundle] bundleURL];
@@ -126,27 +124,33 @@
             baseUrl = [[NSURL alloc] initWithString:bUrl];
         }
     }
-    
-    if (url != NULL)
+
+    // Load from URL
+    if (url != NULL) {
         self.htmlPdfKit = [BNHtmlPdfKit saveUrlAsPdf:[NSURL URLWithString:url]
                                             pageSize:pageSize
                                          isLandscape:landscape
                                              success:[self GetPDFHandler:command setOptions:option]
                                              failure:[self GetErrorHandler:command]];
-    
-    if (data != NULL){
+        return;
+    }
+
+    // Load from raw HTML string
+    if (data != NULL) {
         NSURL *base = [[NSBundle mainBundle] bundleURL];
-        
-        self.htmlPdfKit = [BNHtmlPdfKit saveHTMLAsPdf:data
-                                             pageSize:pageSize
-                                          isLandscape:landscape
-                                              baseUrl:base
-                                              success:[self GetPDFHandler:command setOptions:option]
-                                              failure:[self GetErrorHandler:command]];
-    
-    
-       
-          NSLog(@"url--> %@", [[base absoluteString] stringByDeletingLastPathComponent]);
+
+        NSLog(@"🕒 Waiting 500ms before generating PDF to allow full render...");
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            NSLog(@"📄 Starting HTML-to-PDF generation with BNHtmlPdfKit...");
+
+            self.htmlPdfKit = [BNHtmlPdfKit saveHTMLAsPdf:data
+                                                 pageSize:pageSize
+                                              isLandscape:landscape
+                                                  baseUrl:base
+                                                  success:[self GetPDFHandler:command setOptions:option]
+                                                  failure:[self GetErrorHandler:command]];
+        });
     }
 }
 
