@@ -10,10 +10,13 @@
     void (^ErrorHandling)(NSError *error) = ^(NSError *error){
         
         
+        // Must be CDVCommandStatus_ERROR: reporting OK here delivered the
+        // error text to the app's SUCCESS callback, which attached it to the
+        // customer email as if it were base64 pdf data (blank contracts).
         CDVPluginResult *result = [CDVPluginResult
-                                   resultWithStatus: CDVCommandStatus_OK
-                                   messageAsString: [error description] ];
- 
+                                   resultWithStatus: CDVCommandStatus_ERROR
+                                   messageAsString: [error localizedDescription] ];
+
         [self.commandDelegate sendPluginResult:result callbackId:[command callbackId]];
         self.hasPendingOperation = NO;
     };

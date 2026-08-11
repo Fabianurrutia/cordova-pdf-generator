@@ -238,6 +238,7 @@
 
     [self.webView setNavigationDelegate:nil];
     [self.webView stopLoading];
+    [self.webView removeFromSuperview];
 }
 
 #pragma mark - Class Methods
@@ -371,14 +372,39 @@
 - (void)saveHtmlAsPdf:(NSString *)html toFile:(NSString *)file {
     self.outputFile = file;
 
-    self.webView = [[WKWebView alloc] init];
-    self.webView.navigationDelegate = self;
+    [self _makeWebView];
 
     if (!self.baseUrl) {
         [self.webView loadHTMLString:html baseURL:[NSURL URLWithString:@"http://localhost"]];
     } else {
         [self.webView loadHTMLString:html baseURL:self.baseUrl];
     }
+}
+
+// WKWebView renders through a separate WebContent process that skips layout
+// and drawing for views that are not attached to a window. Both snapshotting
+// and viewPrintFormatter intermittently produce BLANK output for a detached
+// webview, so the view is inserted at the back of the key window (behind the
+// opaque Cordova webview) for the duration of the render.
+- (void)_makeWebView {
+    CGSize pageSize = [self actualPageSize];
+    self.webView = [[WKWebView alloc] initWithFrame:CGRectMake(0, 0, pageSize.width, pageSize.height)];
+    self.webView.navigationDelegate = self;
+    self.webView.userInteractionEnabled = NO;
+
+    UIWindow *window = [UIApplication sharedApplication].delegate.window;
+    if (!window) {
+        window = [UIApplication sharedApplication].keyWindow;
+    }
+    if (window) {
+        [window insertSubview:self.webView atIndex:0];
+    }
+}
+
+- (void)_teardownWebView {
+    [self.webView setNavigationDelegate:nil];
+    [self.webView removeFromSuperview];
+    self.webView = nil;
 }
 
 - (void)saveUrlAsPdf:(NSURL *)url {
@@ -388,10 +414,7 @@
 - (void)saveUrlAsPdf:(NSURL *)url toFile:(NSString *)file {
     self.outputFile = file;
 
-    self.webView = [[WKWebView alloc] init];
-    self.webView.navigationDelegate = self;
-
-    self.webView.configuration.suppressesIncrementalRendering = YES;
+    [self _makeWebView];
 
     [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
 }
@@ -440,59 +463,89 @@
 - (void)_savePdf {
     if (!self.webView) return;
 
-    CGFloat pageHeight = self.webView.bounds.size.height;
-    CGSize scrollSize = self.webView.scrollView.contentSize;
+    // Get the actual page size for PDF
+    CGSize pageSize = [self actualPageSize];
+    CGRect printableRect = CGRectMake(self.leftAndRightMarginSize,
+                                      self.topAndBottomMarginSize,
+                                      pageSize.width - (self.leftAndRightMarginSize * 2),
+                                      pageSize.height - (self.topAndBottomMarginSize * 2));
+    CGRect paperRect = CGRectMake(0, 0, pageSize.width, pageSize.height);
 
-    // Add extra height (1 more screenful)
-    CGSize paddedSize = CGSizeMake(scrollSize.width, scrollSize.height + pageHeight);
-    CGRect pageRect = CGRectMake(0, 0, paddedSize.width, paddedSize.height);
+    // Get the full content height from the webView
+    CGFloat contentHeight = self.webView.scrollView.contentSize.height;
+    CGFloat contentWidth = pageSize.width - (self.leftAndRightMarginSize * 2);
 
-    self.webView.bounds = pageRect;
-    self.webView.opaque = NO;
-    self.webView.backgroundColor = [UIColor clearColor];
-    self.webView.scrollView.backgroundColor = [UIColor clearColor];
+    NSLog(@"PDF Generation - Content Height: %.2f, Page Height: %.2f", contentHeight, pageSize.height);
 
-    WKSnapshotConfiguration *config = [[WKSnapshotConfiguration alloc] init];
-    config.rect = pageRect;
-    config.afterScreenUpdates = YES;
+    // Create print formatter from webView
+    UIViewPrintFormatter *printFormatter = [self.webView viewPrintFormatter];
 
-    [self.webView takeSnapshotWithConfiguration:config completionHandler:^(UIImage *snapshotImage, NSError *error) {
-        if (error || !snapshotImage) {
-            NSLog(@"Snapshot failed: %@", error);
-            if (self.failureBlock) {
-                self.failureBlock(error ?: [NSError errorWithDomain:@"BNHtmlPdfKit" code:500 userInfo:@{NSLocalizedDescriptionKey: @"Snapshot failed"}]);
-            }
-            return;
+    // Set the content width and allow unlimited height for proper pagination
+    printFormatter.maximumContentWidth = contentWidth;
+    printFormatter.maximumContentHeight = contentHeight;
+
+    // Create custom page renderer
+    BNHtmlPdfKitPageRenderer *renderer = [[BNHtmlPdfKitPageRenderer alloc] init];
+    renderer.topAndBottomMarginSize = self.topAndBottomMarginSize;
+    renderer.leftAndRightMarginSize = self.leftAndRightMarginSize;
+
+    [renderer addPrintFormatter:printFormatter startingAtPageAtIndex:0];
+
+    if (renderer.numberOfPages == 0) {
+        // A detached or unrendered webview lays out zero pages. Reporting
+        // success here would hand the app a structurally valid but EMPTY
+        // pdf, which gets emailed to the customer as a blank contract.
+        NSLog(@"PDF Generation - renderer produced 0 pages, failing");
+        [self _teardownWebView];
+        if (self.failureBlock) {
+            self.failureBlock([NSError errorWithDomain:@"BNHtmlPdfKit" code:500
+                userInfo:@{NSLocalizedDescriptionKey: @"PDF renderer produced 0 pages"}]);
         }
+        return;
+    }
 
-        NSMutableData *pdfData = [NSMutableData data];
-        UIGraphicsBeginPDFContextToData(pdfData, pageRect, nil);
+    // Create PDF context
+    NSMutableData *pdfData = [NSMutableData data];
+    UIGraphicsBeginPDFContextToData(pdfData, paperRect, @{
+        // Set high quality compression
+        (__bridge NSString *)kCGPDFContextCreator: @"BNHtmlPdfKit",
+        (__bridge NSString *)kCGPDFContextTitle: @"HTML Document"
+    });
+
+    // Prepare for drawing
+    [renderer prepareForDrawingPages:NSMakeRange(0, renderer.numberOfPages)];
+
+    NSLog(@"PDF Generation - Total Pages: %ld", (long)renderer.numberOfPages);
+
+    // Draw each page
+    for (NSInteger i = 0; i < renderer.numberOfPages; i++) {
         UIGraphicsBeginPDFPage();
+        CGRect bounds = UIGraphicsGetPDFContextBounds();
+        [renderer drawPageAtIndex:i inRect:bounds];
+    }
 
-        [snapshotImage drawInRect:pageRect];
+    UIGraphicsEndPDFContext();
 
-        UIGraphicsEndPDFContext();
+    // Call completion handlers
+    if (self.dataCompletionBlock) {
+        self.dataCompletionBlock(pdfData);
+    }
 
-        if (self.dataCompletionBlock) {
-            self.dataCompletionBlock(pdfData);
-        }
+    if (self.fileCompletionBlock && self.outputFile) {
+        [pdfData writeToFile:self.outputFile atomically:YES];
+        self.fileCompletionBlock(self.outputFile);
+    }
 
-        if (self.fileCompletionBlock && self.outputFile) {
-            [pdfData writeToFile:self.outputFile atomically:YES];
-            self.fileCompletionBlock(self.outputFile);
-        }
+    if ([self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfData:)]) {
+        [self.delegate htmlPdfKit:self didSavePdfData:pdfData];
+    }
 
-        if ([self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfData:)]) {
-            [self.delegate htmlPdfKit:self didSavePdfData:pdfData];
-        }
+    if (self.outputFile &&
+        [self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfFile:)]) {
+        [self.delegate htmlPdfKit:self didSavePdfFile:self.outputFile];
+    }
 
-        if (self.outputFile &&
-            [self.delegate respondsToSelector:@selector(htmlPdfKit:didSavePdfFile:)]) {
-            [self.delegate htmlPdfKit:self didSavePdfFile:self.outputFile];
-        }
-
-        self.webView = nil;
-    }];
+    [self _teardownWebView];
 }
 
 - (CGSize)_sizeFromPageSize:(BNPageSize)pageSize {
